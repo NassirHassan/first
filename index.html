@@ -1,0 +1,264 @@
+
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+	<title>Tryit Editor v3.7 luce80</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="css/w3.css">
+	<link rel="stylesheet" href="css/codemirror.css">
+	<link rel="stylesheet" href="css/tit-fontello.css">
+	
+	<script src="js/codemirror/codemirror.js"></script>
+	<script src="js/codemirror/addon/edit/closetag.js"></script>
+	<script src="js/codemirror/addon/edit/closebrackets.js"></script>
+	<script src="js/codemirror/addon/fold/xml-fold.js"></script>
+	<script src="js/codemirror/mode/xml/xml.js"></script>
+	<script src="js/codemirror/mode/javascript/javascript.js"></script>
+	<script src="js/codemirror/mode/css/css.js"></script>
+	<script src="js/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+
+	<script>
+		function $Id(id) {return document.getElementById(id)};
+		function $Tag(tag) {return document.getElementsByTagName(tag)};
+
+		if (window.addEventListener) {
+			window.addEventListener("resize", browserResize);
+		} else if (window.attachEvent) {
+			window.attachEvent("onresize", browserResize);
+		}
+
+		//window.onbeforeunload = function(e) { if (e) {e.returnValue = "You have unsaved changes."}; return "Are you sure?"; }
+
+		function browserResize() {
+			if (window.screen.availWidth <= 768) {
+				restack(window.innerHeight > window.innerWidth);
+			}
+			showFrameSize();    
+		}
+
+	</script>
+
+	<style>
+		* {
+			-webkit-box-sizing: border-box;
+			-moz-box-sizing: border-box;
+			box-sizing: border-box;
+		}
+		body {
+			background-color: #f1f1f1;
+			color: #000000;
+			margin: 0px;
+		}
+
+		ul {
+			list-style-type: none;
+			margin: 0px;
+			padding: 0px 10px;
+			overflow: hidden;
+		}
+		li {
+			float: left;
+			margin: 2px;
+		}
+		li a {
+			display: inline-block;
+		}
+		li.dropdown {
+			display: inline-block;
+		}
+
+		.dropdown-content {
+			display: none;
+			position: absolute;
+			top: 44px;
+			min-width: 160px;
+			width: 40%;
+			box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+			background-color: hsl(0, 0%, 95%);
+			z-index: 10;
+		}
+		.dropdown-content p {
+			color: black;
+			padding: 2px 16px;
+			font-size: 12px;
+		}
+		
+		.switch {
+			position: relative;
+			display: inline-block;
+			margin: 0 4px;
+		}
+		.switch input {
+			display: none;
+		}
+
+		.slider {
+			box-sizing: border-box;
+			position: static;
+			width: 50px;
+			height: 40px;
+			margin: 0px 4px;
+			background: white;
+			border: solid lightgrey;
+			border-radius: 20%;
+			border-width: 4px 20px 4px 4px;
+			display: inline-block;
+			vertical-align: -14px;
+			cursor: pointer;
+			transition: border 0.3s;
+		} 
+		/*.slider:hover { 		} */
+		input:checked + .slider { 
+			border-color: hsl(122, 39.4%, 49.2%);/*w3-green*/
+			border-width: 4px 4px 4px 20px;
+		} 
+
+		.w3-bar .w3-bar-item:hover {
+			color: #757575 !important;
+		}
+		.w3-bar .w3-bar-item {
+			margin: 2px;
+			height: calc(100% - (2px + 2px));
+			padding: 2px 12px;
+		}
+
+		.dropdown {
+			display: inline;
+			z-index: 2;
+		}
+
+		.CodeMirror.cm-s-default {
+			line-height: normal;
+			padding: 4px;
+			height: 100%;
+			width: 100%;
+		}
+
+		#container {
+			margin: 0px 10px;
+			position: absolute;
+			height: calc(100% - 10px - 44px);
+			width: calc(100% - 20px);
+			top: 44px; bottom: 0px; left: 0; right: 0;
+		}
+		#textareacontainer, #dragbar, #iframecontainer {
+			float: left;
+			height: 100%;
+			width: calc(50% - 6px);
+			box-shadow: 0px 3px 5px -1px rgb(182, 181, 181);
+		}
+		#dragbar {
+			width: 12px;
+			box-shadow: none;
+			cursor: col-resize;
+		}
+		#filename {
+			border: 1px solid hsl(130, 100%, 30%);
+			background: white;
+			width: 300px;
+			padding: 7px 4px;
+			text-align: left;
+		}
+		#shield {
+			display: none;
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 4;
+		}
+		#framesize span {
+			font-family: Consolas, monospace;
+		}
+		#iframeResult {
+			background-color: #ffffff;
+			border: none;
+			height: 100%;
+			width: 100%;  
+		}
+
+		
+		[class*="tit-icon-"] {
+			/*font: normal normal normal 18px/1 tit-fontello;*/
+			text-rendering: auto;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			padding: 8px 10px;
+		}
+
+		@keyframes spin {
+				0% { transform: rotate(0deg); }
+				100% { transform: rotate(360deg); }
+		}
+		/* this MUST be the last rule*/
+		.show {display: block;}
+		
+		
+	</style>
+	<!--[if lt IE 8]>
+	<style>
+		#textareacontainer, #iframecontainer {width: 48%;}
+		#container {height: 500px;}
+		#textarea, #iframe {width: 90%;height: 450px;}
+		#textareaCode, #iframeResult {height: 450px;}
+	</style>
+	<![endif]-->
+</head>
+<body>
+																	<!--w3-bar-item w3-hover-text-green -->
+
+<ul style="height: 100px; border: 1px solid green;">
+	
+	<li><button  style="background-color: red; margin-right: 50px; border-radius: 25px;" class="w3-button tit-icon-arrows-cw  " onclick="restack()" title="Change Orientation" >Rotate</button></li>
+
+
+	<li><button type="button" onclick="submitTryit()" style="background-color: red; padding: 5px; border-radius: 25px; width: 80px; margin-top: 2px; height: 35px;">Run</button></li>
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	<li style="float: right"><span class=" " style="padding: 9px 0;display: block;" id="framesize"></span></li>
+  </ul>
+  
+<div id="shield"></div>
+
+<div id="container">
+
+	<div id="textareacontainer">
+		<textarea autocomplete="on" id="textareaCode" wrap="logical" spellcheck="false">
+<!DOCTYPE html>
+<html>
+<head>
+<title>Sort a HTML List Alphabetically</title>
+</head>
+<body>
+
+<h1>I am Nasir Uddin Hasan. I am professional web developer.</h1>
+
+</body>
+</html>
+
+</textarea>
+	</div>
+	<div id="dragbar">  </div>
+	<div id="iframecontainer">
+		<iframe id="iframeResult">
+		</iframe>
+	</div>
+</div>
+
+<script type="text/javascript" src="js/web_editor.js"></script>
+
+
+
+</body>
+</html>
